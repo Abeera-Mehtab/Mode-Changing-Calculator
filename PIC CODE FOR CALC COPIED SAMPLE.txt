@@ -1,0 +1,190 @@
+; PIC16LF877 Assembly Code for a Simple Calculator
+#include <p16f877.inc>
+
+; Configuration Bits
+__CONFIG _CP_OFF & _WDT_OFF & _PWRTE_ON & _BODEN_ON & _LVP_OFF
+
+; Define Constants
+#define MODE_ARITHMETIC 0
+#define MODE_LOGICAL 1
+
+; Variable Definitions
+cblock 0x20
+    mode           ; Current mode (Arithmetic/Logical)
+    operand1      ; Operand 1
+    operand2      ; Operand 2
+    result        ; Result of operation
+    operator      ; Operator (+, -, *, /, AND, OR, XOR, NOT)
+endc
+
+; Initialize the Microcontroller
+init:
+    bsf STATUS, RP0        ; Bank 1
+    clrf PORTB             ; Clear PORTB (for input)
+    clrf PORTD             ; Clear PORTD (for LCD)
+    movlw 0x00
+    tris PORTB             ; Set PORTB as input (for keypad)
+    movlw 0xFF
+    tris PORTD             ; Set PORTD as output (for LCD)
+    bcf STATUS, RP0        ; Bank 0
+    movlw MODE_ARITHMETIC ; Set initial mode to Arithmetic
+    movwf mode
+    return
+
+; Main Program Loop
+main:
+    call init
+main_loop:
+    ; Get Input from Keypad
+    call get_input        ; Get operator and operands
+    
+    ; Depending on the mode, perform corresponding operations
+    movf mode, W
+    btfsc STATUS, 0       ; Check if Arithmetic mode
+    call perform_arithmetic
+    btfsc STATUS, 1       ; Check if Logical mode
+    call perform_logical
+
+    goto main_loop        ; Repeat the loop
+
+; Get Input from Keypad
+get_input:
+    ; Placeholder for getting input from keypad
+    ; Assume the keypad is mapped onto PORTB
+    ; For simplicity, hardcoded values are used here
+    
+    ; Example:
+    ; For demonstration, let's assume the user enters:
+    ; operand1 = 5, operand2 = 3, operator = '+'
+    movlw 5                ; Load operand1
+    movwf operand1
+    movlw 3                ; Load operand2
+    movwf operand2
+    movlw '+'              ; Load operator
+    movwf operator
+    return
+
+; Perform Arithmetic Operations
+perform_arithmetic:
+    ; Use a switch-case or if-else to determine the operation
+    movf operator, W
+    ; Addition
+    btfsc STATUS, '0'     ; Check if operator is '+'
+    call add_operation
+    ; Subtraction
+    btfsc STATUS, '1'     ; Check if operator is '-'
+    call subtract_operation
+    ; Multiplication
+    btfsc STATUS, '2'     ; Check if operator is '*'
+    call multiply_operation
+    ; Division
+    btfsc STATUS, '3'     ; Check if operator is '/'
+    call divide_operation
+
+    ; Display result on LCD
+    call display_result
+    return
+
+; Addition Operation
+add_operation:
+    movf operand1, W
+    addwf operand2, W     ; W = operand1 + operand2
+    movwf result          ; Store result
+    return
+
+; Subtraction Operation
+subtract_operation:
+    movf operand1, W
+    subwf operand2, W     ; W = operand1 - operand2
+    movwf result          ; Store result
+    return
+
+; Multiplication Operation
+multiply_operation:
+    movf operand1, W
+    movwf result          ; Temporary store
+    movf operand2, W
+    mulwf result          ; Multiply and store
+    return
+
+; Division Operation
+divide_operation:
+    movf operand2, W
+    ; Check for division by zero
+    btfsc STATUS, 0
+    goto division_by_zero
+    movf operand1, W
+    clrf result           ; Clear result
+    movf operand2, W
+    ; Perform division
+    ; Note: This code assumes both operands fit in 8 bits
+    movlw 0x00            ; Clear the quotient
+    movwf result
+    ; Division logic here (simple example)
+    ; result = operand1 / operand2
+    return
+
+division_by_zero:
+    ; Handle division by zero error
+    ; For simplicity, let's just clear the result
+    clrf result
+    return
+
+; Perform Logical Operations
+perform_logical:
+    movf operator, W
+    ; AND Operation
+    btfsc STATUS, '4'     ; Check if operator is AND
+    call and_operation
+    ; OR Operation
+    btfsc STATUS, '5'     ; Check if operator is OR
+    call or_operation
+    ; XOR Operation
+    btfsc STATUS, '6'     ; Check if operator is XOR
+    call xor_operation
+    ; NOT Operation
+    btfsc STATUS, '7'     ; Check if operator is NOT
+    call not_operation
+
+    ; Display result on LCD
+    call display_result
+    return
+
+; AND Operation
+and_operation:
+    movf operand1, W
+    andwf operand2, W     ; W = operand1 AND operand2
+    movwf result          ; Store result
+    return
+
+; OR Operation
+or_operation:
+    movf operand1, W
+    orwf operand2, W      ; W = operand1 OR operand2
+    movwf result          ; Store result
+    return
+
+; XOR Operation
+xor_operation:
+    movf operand1, W
+    xorwf operand2, W     ; W = operand1 XOR operand2
+    movwf result          ; Store result
+    return
+
+; NOT Operation
+not_operation:
+    movf operand1, W
+    notwf result          ; NOT operand1
+    return
+
+; Display Result on LCD
+display_result:
+    ; Assume a function for displaying value on LCD
+    ; Convert result to ASCII and send to LCD
+    ; Example: Send result to PORTD for an LCD
+    movf result, W
+    movwf PORTD           ; Output result to PORTD (connected to LCD)
+    return
+
+; End Program
+    end main
