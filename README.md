@@ -1,4 +1,4 @@
-# Calculator Processor Architecture
+# Mode-Changing Calculator
 
 ## 1. Introduction
 This project focuses on designing a processor architecture for a basic calculator. The calculator supports both arithmetic and logical operations and interacts with input and output devices. Phase 1 involves the processor design, block diagram, hardware description, and interaction with I/O devices.
